@@ -1,0 +1,7 @@
+package example:add;
+
+world add {
+  import wasi:logging/logging; 
+
+  export addnode;
+}
