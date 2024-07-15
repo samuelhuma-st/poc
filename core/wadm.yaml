@@ -30,11 +30,48 @@ spec:
             namespace: example
             package: add
             interfaces: [addnode]
+        - type: link
+          properties:
+            target: print-component
+            namespace: example
+            package: print
+            interfaces: [printnode]
+        - type: link
+          properties:
+            target: trigger-component
+            namespace: example
+            package: trigger
+            interfaces: [triggernode]
 
+    # Add add node component
     - name: add-component
       type: component
       properties:
         image: file://../nodes/add/build/add_s.wasm
+      traits:
+        # Govern the spread/scheduling of the component
+        - type: spreadscaler
+          properties:
+            replicas: 1
+
+
+    # Add operation (add) node
+    - name: print-component
+      type: component
+      properties:
+        image: file://../nodes/print/build/print_s.wasm
+      traits:
+        # Govern the spread/scheduling of the component
+        - type: spreadscaler
+          properties:
+            replicas: 1
+
+
+    # Add trigger node
+    - name: trigger-component
+      type: component
+      properties:
+        image: file://../nodes/trigger/build/trigger_s.wasm
       traits:
         # Govern the spread/scheduling of the component
         - type: spreadscaler
