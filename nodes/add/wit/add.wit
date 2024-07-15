@@ -1,5 +1,5 @@
 package example:add;
 
 interface addnode {
-    execute: func() -> string;
+    execute: func(params: string) -> string;
 }
