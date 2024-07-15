@@ -1,5 +1,5 @@
 package example:print;
 
 interface printnode {
-    execute: func(param: string) -> string ;
+    execute: func(params: string) -> string ;
 }

@@ -35,12 +35,6 @@ impl Guest for HttpServer {
         let path = request.path_with_query().unwrap();
         let splited_path: Vec<&str> = path.split("/").collect();
 
-        wasi::logging::logging::log(
-            wasi::logging::logging::Level::Error,
-            "",
-            &format!("shjk"),
-        );
-
         match (request.method(), splited_path.as_slice()) {
             (Method::Post, [_, "manual-trigger", ..]) => {
                 let body = request.read_body().expect("Incorrect body format");
