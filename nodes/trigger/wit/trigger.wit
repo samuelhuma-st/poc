@@ -1,0 +1,5 @@
+package example:trigger;
+
+interface triggernode {
+    execute: func() -> string;
+}

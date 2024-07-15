@@ -1,23 +1,20 @@
 wit_bindgen::generate!();
 
-use exports::wasi::http::incoming_handler::Guest;
-use wasi::http::types::*;
+use exports::example::print::printnode::Guest;
 
-struct HttpServer;
+struct PrintNode;
 
-impl Guest for HttpServer {
-    fn handle(_request: IncomingRequest, response_out: ResponseOutparam) {
-        let response = OutgoingResponse::new(Fields::new());
-        response.set_status_code(200).unwrap();
-        let response_body = response.body().unwrap();
-        ResponseOutparam::set(response_out, Ok(response));
-        response_body
-            .write()
-            .unwrap()
-            .blocking_write_and_flush(b"Hello from Rust!\n")
-            .unwrap();
-        OutgoingBody::finish(response_body, None).expect("failed to finish response body");
+impl Guest for PrintNode {
+    fn execute(params: String) -> String {
+        // Retourner le résultat sous forme de boîte de Debug pour l'affichage
+        wasi::logging::logging::log(
+            wasi::logging::logging::Level::Info,
+            "",
+            &format!("Output : {params:?}"),
+        );
+
+        "Executed successfully".to_string()
     }
 }
 
-export!(HttpServer);
+export!(PrintNode);
