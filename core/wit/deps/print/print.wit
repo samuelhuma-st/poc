@@ -1,5 +1,5 @@
-package example:add;
+package example:print;
 
-interface addnode {
+interface printnode {
     execute: func(param: string) -> string ;
 }

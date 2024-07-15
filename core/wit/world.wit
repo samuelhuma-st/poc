@@ -2,6 +2,9 @@ package wasmcloud:core;
 
 world core {
   import example:add/addnode;
+  import example:print/printnode;
+  import example:trigger/triggernode;
+  import wasi:logging/logging; 
 
   export wasi:http/incoming-handler@0.2.0;
 }

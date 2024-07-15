@@ -1,0 +1,6 @@
+package example:trigger;
+
+world trigger {
+  
+  export triggernode;
+}
