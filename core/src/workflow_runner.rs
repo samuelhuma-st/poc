@@ -18,7 +18,10 @@ impl WorkflowRunner {
         let graph = build_dependency_graph(workflow_data);
         let sorted_nodes = topological_sort(&workflow_data, &graph);
 
-        let trigger_node = workflow_data.nodes.iter().find(|&n| n.name == "trigger");
+        let trigger_node = workflow_data
+            .nodes
+            .iter()
+            .find(|&n| n.node_type == "trigger");
 
         if let None = trigger_node {
             wasi::logging::logging::log(
@@ -59,7 +62,7 @@ impl WorkflowRunner {
 
         for node_id in &sorted_nodes[start_index..] {
             if let Some(current_node) = workflow_data.nodes.iter().find(|&n| n.id == *node_id) {
-                let a = current_node.name.as_str();
+                let a = current_node.node_type.as_str();
                 if let Some(node_box) = all_nodes.get(&a) {
                     // Résoudre les références dans les paramètres
                     let resolved_params = resolve_references(
@@ -89,11 +92,9 @@ impl WorkflowRunner {
                         }
                     }
 
-                    // let result = node_box(&value);
-
                     execution_results.insert(
-                        current_node.id.clone(),
-                        serde_json::json!(format!("{:?}", result)),
+                        current_node.name.clone(),
+                        serde_json::json!({"json": result}),
                     );
 
                     wasi::logging::logging::log(

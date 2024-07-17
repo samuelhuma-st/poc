@@ -1,7 +1,13 @@
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 use std::{collections::HashMap, error::Error};
 
-use crate::models::WorkflowData;
+use crate::{models::WorkflowData, wasi};
+
+pub enum NodeFunction {
+    NoParam(fn() -> String),
+    WithParam(fn(&str) -> String),
+}
 
 pub fn parse_workflow_data(body: &str) -> Result<WorkflowData, Box<dyn Error>> {
     let workflow_data: WorkflowData = serde_json::from_str(&body)?;
@@ -22,16 +28,88 @@ pub fn resolve_references(
             }
 
             for (node_id, result) in node_results {
-                let placeholder = format!("{{Node{}Result}}", node_id);
-                value = v
-                    .clone()
-                    .to_string()
-                    .replace(&placeholder, result.as_str().unwrap());
+                value = replace_placeholders(v.to_string().as_str(), node_results);
+                wasi::logging::logging::log(
+                    wasi::logging::logging::Level::Info,
+                    "",
+                    &format!("here is value = {value:?}"),
+                );
             }
 
             (k.clone(), value)
         })
         .collect()
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct MyStruct {
+    greeting: String,
+    sum: u32,
+}
+// To replace a placeholder by it's value
+pub fn replace_placeholders(input: &str, map: &HashMap<String, Value>) -> String {
+    let mut result = String::new();
+    let mut i = 0;
+    let input_chars: Vec<char> = input.chars().collect();
+
+    while i < input_chars.len() {
+        if input_chars[i] == '{' && i + 3 < input_chars.len() && &input[i..i + 4] == "{{$(" {
+            if let Some(end_idx) = input[i..].find("}}") {
+                let placeholder = &input[i + 4..i + end_idx];
+                wasi::logging::logging::log(
+                    wasi::logging::logging::Level::Info,
+                    "",
+                    &format!("placeholder = {placeholder}"),
+                );
+                let splitted_str: (&str, &str) = placeholder.split_once(").").unwrap();
+                let trimmed = splitted_str.0.trim_matches(&['\"', '\\']);
+
+                let value_path: Vec<&str> = splitted_str.1.split('.').collect();
+
+                wasi::logging::logging::log(
+                    wasi::logging::logging::Level::Info,
+                    "",
+                    &format!("trimmed = {trimmed}"),
+                );
+
+                let x = &map.get(trimmed).unwrap();
+                if let Some(val) = get_value_from_path(x, &value_path) {
+                    result.push_str(&val.to_string());
+                    wasi::logging::logging::log(
+                        wasi::logging::logging::Level::Info,
+                        "",
+                        &format!("result 👍= {val:?}"),
+                    );
+                }
+
+                i += end_idx + 2; // Move past the end of the placeholder
+            } else {
+                result.push(input_chars[i]);
+                i += 1;
+            }
+        } else {
+            result.push(input_chars[i]);
+            i += 1;
+        }
+    }
+
+    result
+}
+
+fn get_value_from_path<'a>(map: &'a Value, path: &[&str]) -> Option<&'a Value> {
+    let mut current_value: Option<&Value> = None;
+
+    for (i, key) in path.iter().enumerate() {
+        if i == 0 {
+            current_value = map.get(*key);
+        } else if let Some(val) = current_value {
+            current_value = val.get(*key);
+        } else {
+            return None;
+        }
+    }
+
+    current_value
 }
 
 // Fonction pour construire le graphe des dépendances
@@ -91,9 +169,4 @@ pub fn topological_sort(
     } else {
         vec![]
     }
-}
-
-pub enum NodeFunction {
-    NoParam(fn() -> String),
-    WithParam(fn(&str) -> String),
 }
