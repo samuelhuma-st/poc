@@ -36,3 +36,54 @@ curl http://127.0.0.1:8080
 ## Adding Capabilities
 
 To learn how to extend this example with additional capabilities, see the [Adding Capabilities](https://wasmcloud.com/docs/tour/adding-capabilities?lang=rust) section of the wasmCloud documentation.
+
+
+## Template workflow data
+```
+{
+  "name": "Poc",
+  "nodes": [
+    {
+      "id": "3",
+      "name": "Display",
+      "node_type": "print",
+      "parameters": {
+        "value": "{{$(start).json.description}}. We are {{$(Addition order).json.result}} order today. I use add node to get order because {{$(Addition order).json.description}}"
+      }
+    },
+    {
+      "id": "2",
+      "name": "Addition order",
+      "node_type": "add",
+      "parameters": {
+        "value": [
+          1,
+          5,
+          4
+        ]
+      },
+      "next_node": "3"
+    },
+    {
+      "id": "5",
+      "name": "start",
+      "node_type": "trigger",
+      "parameters": {},
+      "next_node": "2"
+    }
+  ],
+  "connections": [
+    {
+      "from": "1",
+      "to": "2"
+    },
+    {
+      "from": "2",
+      "to": "3"
+    }
+  ],
+  "metadata": {
+    "description": "A poc workflow"
+  }
+}
+```

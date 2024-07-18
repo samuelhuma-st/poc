@@ -4,16 +4,20 @@ use exports::example::print::printnode::Guest;
 
 struct PrintNode;
 
+#[derive(Debug, serde::Serialize)]
+struct Output {
+    description: String,
+}
+
 impl Guest for PrintNode {
     fn execute(params: String) -> String {
-        // Retourner le résultat sous forme de boîte de Debug pour l'affichage
-        wasi::logging::logging::log(
-            wasi::logging::logging::Level::Info,
-            "",
-            &format!("Output : {params:?}"),
-        );
 
-        "Executed successfully".to_string()
+        let output_data = Output {
+            description: String::from("This node displays a response in your terminal"),
+        };
+
+        let output = serde_json::to_value(&output_data).unwrap().to_string();
+        return output;
     }
 }
 

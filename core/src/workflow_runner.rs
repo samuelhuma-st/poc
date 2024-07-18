@@ -92,9 +92,12 @@ impl WorkflowRunner {
                         }
                     }
 
+                    let result_format = result.to_string();
+                    let output_data: Value = serde_json::from_str(&result_format).unwrap();
+
                     execution_results.insert(
                         current_node.name.clone(),
-                        serde_json::json!({"json": result}),
+                        serde_json::from_str(format!("{{\"json\": {output_data}}}").as_str()).unwrap(),
                     );
 
                     wasi::logging::logging::log(
